@@ -14,7 +14,10 @@ import { AuthModule } from './auth/auth.module';
       global: true,
       // signOptions: { expiresIn: '50d' },
     }),
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true, // Make the ConfigModule global
+      envFilePath: '.env', // Specify the path to your .env file
+    }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: function (config: ConfigService) {

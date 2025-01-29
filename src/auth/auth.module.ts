@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiModule } from '../common/Api/api.module';
-import { AuthController } from './auth.controller';
+import { AuthRefreshController } from './auth.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/user/models/user.schema';
 
@@ -12,6 +12,6 @@ import { User, UserSchema } from 'src/user/models/user.schema';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   exports: [AuthService],
-  controllers: [AuthController],
+  controllers: [AuthRefreshController],
 })
 export class AuthModule {}

@@ -5,12 +5,13 @@ import { AuthUser } from '../common/decorator/user.decorator';
 import { RefreshGuard } from './guards/refresh.guard';
 import { Response } from 'express';
 
-@Controller('auth')
-export class AuthController {
+@Controller('refresh')
+export class AuthRefreshController {
   constructor(private authService: AuthService) {}
-  @Get('refresh')
+  @Get()
   @UseGuards(RefreshGuard)
   refresh(@Res() res: Response, @AuthUser() user: IAuthUser) {
     return this.authService.refreshToken(user, res);
   }
 }
+ 

@@ -6,8 +6,8 @@ import { ApiModule } from '../common/Api/api.module';
 import { UserService } from './service/user.service';
 import { ProfileController } from './controller/profile.controller';
 import { AdminController } from './controller/admin.controller';
-import { AuthController } from 'src/auth/auth.controller';
 import { AuthModule } from 'src/auth/auth.module';
+import { AuthController } from './controller/auth.controller';
 
 @Module({
   controllers: [ProfileController, AdminController, AuthController],

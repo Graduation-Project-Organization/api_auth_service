@@ -78,7 +78,6 @@ export class UserService {
     await this.validateUniqueEmail(body.email);
     body.password = await bcrypt.hash(body.password, 10);
     const user = await this.userModel.create(body);
-    user.password = undefined;
     await this.emailVerification(user);
     const accessToken = await this.authService.createAccessToken(
       user._id.toString(),
@@ -88,6 +87,7 @@ export class UserService {
       user._id.toString(),
       user.role,
     );
+    user.password = undefined;
     return { user, accessToken, refreshToken };
   }
   async getFcmToken(userId: string) {
