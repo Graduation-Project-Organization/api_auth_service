@@ -74,21 +74,24 @@ export class UserService {
     await user.save();
     return { message: 'email verified' };
   }
-  async createUser(body: CreateUserDto) {
+  async createUser(body: CreateUserDto, res: Response) {
     await this.validateUniqueEmail(body.email);
     body.password = await bcrypt.hash(body.password, 10);
     const user = await this.userModel.create(body);
     await this.emailVerification(user);
-    const accessToken = await this.authService.createAccessToken(
-      user._id.toString(),
-      user.role,
-    );
-    const refreshToken = await this.authService.createRefreshToken(
-      user._id.toString(),
-      user.role,
-    );
-    user.password = undefined;
-    return { user, accessToken, refreshToken };
+    this.createSendToken(user, 201, res);
+    // const accessToken = await this.authService.createAccessToken(
+    //   user._id.toString(),
+    //   user.role,
+    //   user.email,
+
+    // );
+    // const refreshToken = await this.authService.createRefreshToken(
+    //   user._id.toString(),
+    //   user.role,
+    // );
+    // user.password = undefined;
+    // return { user, accessToken, refreshToken };
   }
   async getFcmToken(userId: string) {
     const user = await this.userModel.findById(userId);
@@ -116,6 +119,24 @@ export class UserService {
     await user.save();
     return { user };
   }
+  async createSendToken (user, statusCode, res) {
+    const accessToken = await this.authService.createAccessToken(
+      user._id.toString(),
+      user.role,
+      user.email,
+      user.name
+    );
+    const cookieOptions = {
+        expires: new Date(Date.now() + Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000),
+        httpOnly: true
+    }
+    res.cookie('jwt', accessToken, cookieOptions);
+    user.password = undefined;
+    res.status(statusCode).json({
+        accessToken,
+        user: user
+    })
+}
   async login(body: LoginDto, res: Response) {
     const user = await this.userModel.findOne({ email: body.email });
     if (!user) {
@@ -125,16 +146,17 @@ export class UserService {
     if (!valid) {
       throw new BadRequestException('email or password is not correct');
     }
-    const accessToken = await this.authService.createAccessToken(
-      user._id.toString(),
-      user.role,
-    );
-    const refreshToken = await this.authService.createRefreshToken(
-      user._id.toString(),
-      user.role,
-    );
-    user.password = undefined;
-    res.status(200).json({ accessToken, user, refreshToken });
+    this.createSendToken(user, 200, res);
+    // const accessToken = await this.authService.createAccessToken(
+    //   user._id.toString(),
+    //   user.role,
+    // );
+    // const refreshToken = await this.authService.createRefreshToken(
+    //   user._id.toString(),
+    //   user.role,
+    // );
+    // user.password = undefined;
+    // res.status(200).json({ accessToken, user, refreshToken });
   }
   createHash(code: string) {
     return crypto.createHash('sha256').update(code).digest('hex');
@@ -183,6 +205,17 @@ export class UserService {
     }
     return { user };
   }
+  async getUserProfile(userId: string) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+    user.password = undefined;
+    user.emailVerificationCode = undefined;
+    user.emailVerificationCodeExpiresIn = undefined;
+    user.isVerifiedEmail = undefined;
+    return { user };
+  }
   async getAllUsers(obj: QueryUserDto) {
     const { query, paginationObj } = await this.apiService.getAllDocs(
       this.userModel.find(),
@@ -214,4 +247,17 @@ export class UserService {
     }
     return { user };
   }
+  async logout(res:Response){
+    // remove cookies from browser.
+    console.log('logout')
+    res.cookie('jwt', 'loogedout',{
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true
+    });
+    res.status(200).json({
+        success: true,
+        msg: 'user logged out'
+    })
+
+}
 }

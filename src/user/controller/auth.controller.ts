@@ -22,13 +22,18 @@ export class AuthController {
   login(@Body() body: LoginDto, @Res() res: Response) {
     return this.userService.login(body, res);
   }
+  @Post('logout')
+  logout(@Res() res: Response) {
+    return this.userService.logout(res);
+  }
   @Post('signup')
   // @UseInterceptors(FileInterceptor('icon'))
   createUser(
     @Body() body: CreateUserDto,
+    @Res() res: Response,
     // @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.userService.createUser(body);
+    return this.userService.createUser(body, res);
   }
   @Post('forget-password')
   sendChangingPasswordCode(@Body() body: ForgetPasswordDto) {
