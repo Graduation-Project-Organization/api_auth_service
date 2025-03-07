@@ -17,9 +17,9 @@ export class AuthService {
     );
     return refreshToken;
   }
-  async createAccessToken(userId: string, role: string) {
+  async createAccessToken(userId: string, role: string, email: string, username: string) {
     const accessToken = await this.jwt.signAsync(
-      { userId, role },
+      { userId, role, email, username },
       { secret: this.config.get('access_secret'), expiresIn: '5h' },
     );
     return accessToken;
@@ -28,6 +28,8 @@ export class AuthService {
     const accessToken = await this.createAccessToken(
       user._id.toString(),
       user.role,
+      user.email,
+      user.name,
     );
     const refreshToken = await this.createRefreshToken(user._id, user.role);
     res.status(200).json({ accessToken, user, refreshToken });

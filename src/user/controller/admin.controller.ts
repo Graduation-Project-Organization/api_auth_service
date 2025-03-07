@@ -7,9 +7,11 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthenticationGuard } from '../../common/guard/authentication.guard';
+import { Response } from 'express';
 import { AuthorizationGuard } from '../../common/guard/authorization.guard';
 import { Roles } from '../../common/decorator/roles';
 import { All_Role } from '../../common/enum';
@@ -40,9 +42,10 @@ export class AdminController {
   // @UseInterceptors(FileInterceptor('icon'))
   createUser(
     @Body() body: CreateUserDto,
+     @Res() res: Response,
     // @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.userService.createUser(body);
+    return this.userService.createUser(body, res);
   }
   @Delete(':userId')
   @UseGuards(AuthenticationGuard, AuthorizationGuard)

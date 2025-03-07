@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Patch,
   // UploadedFile,
   UseGuards,
@@ -23,6 +24,11 @@ export class ProfileController {
   @UseGuards(AuthenticationGuard)
   getLoggedUser(@AuthUser() user: IAuthUser) {
     return this.userService.getOneUser(user._id);
+  }
+  @Get(':id')
+  @UseGuards(AuthenticationGuard)
+  getProfileById(@Param('id') id: string) {
+    return this.userService.getUserProfile(id);
   }
   @Patch()
   @UseGuards(AuthenticationGuard)

@@ -18,19 +18,24 @@ export class AuthenticationGuard implements CanActivate {
     @InjectModel(User.name) protected readonly userModel: Model<UserDocument>,
     protected config: ConfigService,
   ) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const payload = await this.extractToken(request);
+
     const user = await this.userModel.findById(payload.userId);
     if (!user) {
-      throw new UnauthorizedException('user has been deleted');
+      throw new UnauthorizedException('User has been deleted');
     }
+
     if (user.passwordChangedAt) {
       const stamp = user.passwordChangedAt.getTime() / 1000;
       if (stamp > payload.iat) {
-        throw new UnauthorizedException('Password has been changed'); // check if password has been changed
+        throw new UnauthorizedException('Password has been changed');
       }
     }
+
+    // Attach user info to the request
     request.user = {
       role: user.role,
       _id: payload.userId,
@@ -38,30 +43,33 @@ export class AuthenticationGuard implements CanActivate {
       email: user.email,
       name: user.name,
     };
+
     return true;
   }
-  extractToken(request: Request) {
-    let token: string = request.headers.authorization;
-    if (!token || !token.startsWith('Bearer')) {
-      throw new UnauthorizedException('Authorization header is missing');
+
+  async extractToken(request: Request) {
+    let token: string | undefined;
+
+    if (request.cookies?.jwt) {
+      token = request.cookies.jwt;
     }
-    token = token.split(' ')[1];
-    return this.decode(token, this.config.get('access_secret'));
+
+    if (!token && request.headers.authorization?.startsWith('Bearer ')) {
+      token = request.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      throw new UnauthorizedException('JWT token is missing from both cookie and header');
+    }
+
+    return this.decode(token, this.config.get<string>('access_secret'));
   }
+
   async decode(token: string, secret: string) {
-    let payload: {
-      userId: string;
-      role: string;
-      walletAddress?: string;
-      iat: number;
-    };
     try {
-      payload = await this.jwt.verifyAsync(token, {
-        secret,
-      });
+      return await this.jwt.verifyAsync(token, { secret });
     } catch (e) {
-      throw new UnauthorizedException('invalid token');
+      throw new UnauthorizedException('Invalid JWT token');
     }
-    return payload;
   }
 }
