@@ -1,11 +1,10 @@
 import {
   Body,
   Controller,
+  HttpException,
   Param,
   Post,
   Res,
-  // UploadedFile,
-  // UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { UserService } from '../service/user.service';
@@ -22,31 +21,40 @@ export class AuthController {
   login(@Body() body: LoginDto, @Res() res: Response) {
     return this.userService.login(body, res);
   }
-  @Post('logout')
-  logout(@Res() res: Response) {
-    return this.userService.logout(res);
-  }
+
+  // @Post('logout')
+  // logout(@Res() res: Response) {
+  //   return this.userService.logout(res);
+  // }
+
   @Post('signup')
   // @UseInterceptors(FileInterceptor('icon'))
   createUser(
     @Body() body: CreateUserDto,
-    @Res() res: Response,
+    // @Res() res: Response,
     // @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.userService.createUser(body, res);
+    return this.userService.createUser(body);
   }
+
   @Post('forget-password')
   sendChangingPasswordCode(@Body() body: ForgetPasswordDto) {
     return this.userService.sendChangingPasswordCode(body.email);
   }
+
   @Post('validate-forget-password-code')
   validatePasswordCode(@Body() body: ValidateOtpCode) {
     return this.userService.validateCode(body.code, body.password);
   }
+
   @Post('validate-verification-code/:code')
-  verificationEmailCode(@Param('code') code: string) {
-    return this.userService.verifyEmail(code);
+  verificationEmailCode(@Param('code') code: string, @Body('email') email: string) {
+    if(!code || !email){
+      throw new HttpException('email or code not found ', 400);
+    }
+    return this.userService.verifyEmail(code, email);
   }
+
   @Post('resend-verification-code')
   resendVerificationEmailCode(@Body('email') email: string) {
     return this.userService.resendVerificationCode(email);

@@ -28,7 +28,7 @@ export class ProfileController {
   @Get(':id')
   @UseGuards(AuthenticationGuard)
   getProfileById(@Param('id') id: string) {
-    return this.userService.getUserProfile(id);
+    return this.userService.getOneUser(id);
   }
   @Patch()
   @UseGuards(AuthenticationGuard)

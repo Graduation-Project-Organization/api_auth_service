@@ -7,22 +7,7 @@ import { All_Role } from 'src/common/enum';
 })
 export class User {
   @Prop({})
-  name: string;
-
-  @Prop({ type: String })
-  passwordResetCode: string;
-
-  @Prop({ type: Date })
-  passwordResetCodeExpiresIn: Date;
-
-  @Prop({ type: Date })
-  passwordChangedAt: Date;
-
-  @Prop({ type: String })
-  emailVerificationCode: string;
-
-  @Prop({ type: Date })
-  emailVerificationCodeExpiresIn: Date;
+  name: string
 
   @Prop({ type: Boolean, default: false })
   isVerifiedEmail: boolean;
@@ -58,6 +43,15 @@ export class User {
     trim: true,
   })
   phone: string;
+
+  @Prop({ type: String })
+  passwordResetCode: string;
+
+  @Prop({ type: Date })
+  passwordResetCodeExpiresIn: Date;
+
+  @Prop({ type: Date })
+  passwordChangedAt: Date;
 }
 export type UserDocument = HydratedDocument<User>;
 export const UserSchema = SchemaFactory.createForClass(User);

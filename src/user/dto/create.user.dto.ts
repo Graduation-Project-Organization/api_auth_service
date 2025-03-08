@@ -39,10 +39,5 @@ export class CreateUserDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  country?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  device?: string;
+  phone?: string;
 }

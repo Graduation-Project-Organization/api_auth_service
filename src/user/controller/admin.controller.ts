@@ -6,8 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  Query,
-  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthenticationGuard } from '../../common/guard/authentication.guard';
@@ -30,33 +28,27 @@ export class AdminController {
   getUser(@Param('userId', ValidateObjectIdPipe) adminId: string) {
     return this.userService.getOneUser(adminId);
   }
-  @Get()
-  @UseGuards(AuthenticationGuard, AuthorizationGuard)
-  @Roles(All_Role.Admin)
-  getAllUsers(@Query() query: QueryUserDto) {
-    return this.userService.getAllUsers(query);
-  }
   @Post()
   @UseGuards(AuthenticationGuard, AuthorizationGuard)
   @Roles(All_Role.Admin)
   // @UseInterceptors(FileInterceptor('icon'))
   createUser(
     @Body() body: CreateUserDto,
-     @Res() res: Response,
     // @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.userService.createUser(body, res);
+    return this.userService.createUser(body);
   }
+
   @Delete(':userId')
   @UseGuards(AuthenticationGuard, AuthorizationGuard)
   @Roles(All_Role.Admin)
   deleteUser(@Param('userId', ValidateObjectIdPipe) userId: string) {
     return this.userService.deleteUser(userId);
   }
+
   @Patch(':userId')
   @UseGuards(AuthenticationGuard, AuthorizationGuard)
   @Roles(All_Role.Admin)
-  // @UseInterceptors(FileInterceptor('icon'))
   updateUser(
     @Param('userId', ValidateObjectIdPipe) userId: string,
     @Body() body: UpdateUserDto,

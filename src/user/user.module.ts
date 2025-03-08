@@ -8,6 +8,7 @@ import { ProfileController } from './controller/profile.controller';
 import { AdminController } from './controller/admin.controller';
 import { AuthModule } from 'src/auth/auth.module';
 import { AuthController } from './controller/auth.controller';
+import { UnverifiedUser, UnverifiedUserSchema } from './models/unverified-user.schema';
 
 @Module({
   controllers: [ProfileController, AdminController, AuthController],
@@ -22,6 +23,13 @@ import { AuthController } from './controller/auth.controller';
         name: User.name,
         useFactory: async () => {
           const schema = UserSchema;
+          return schema;
+        },
+      },
+      {
+        name: UnverifiedUser.name,
+        useFactory: async () => {
+          const schema = UnverifiedUserSchema;
           return schema;
         },
       },
