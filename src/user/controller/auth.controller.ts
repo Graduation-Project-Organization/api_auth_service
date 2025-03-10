@@ -22,10 +22,10 @@ export class AuthController {
     return this.userService.login(body, res);
   }
 
-  // @Post('logout')
-  // logout(@Res() res: Response) {
-  //   return this.userService.logout(res);
-  // }
+  @Post('logout')
+  logout(@Res() res: Response) {
+    return this.userService.logout(res);
+  }
 
   @Post('signup')
   // @UseInterceptors(FileInterceptor('icon'))
@@ -48,11 +48,11 @@ export class AuthController {
   }
 
   @Post('validate-verification-code/:code')
-  verificationEmailCode(@Param('code') code: string, @Body('email') email: string) {
+  verificationEmailCode(@Param('code') code: string, @Body('email') email: string, @Res() res:Response) {
     if(!code || !email){
       throw new HttpException('email or code not found ', 400);
     }
-    return this.userService.verifyEmail(code, email);
+    return this.userService.verifyEmail(code, email, res);
   }
 
   @Post('resend-verification-code')

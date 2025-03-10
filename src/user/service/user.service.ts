@@ -29,6 +29,24 @@ export class UserService {
     await this.emailVerification(body);
     return { message: 'email verification code sent' };
   }
+
+  async createSendToken (user, statusCode, res) {
+    const accessToken = await this.authService.createAccessToken(
+      user._id.toString(),
+      user.role,
+      user.email,
+      user.name
+    );
+    const cookieOptions = {
+        expires: new Date(Date.now() + Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000),
+        httpOnly: true
+    }
+    res.cookie('jwt', accessToken, cookieOptions);
+    res.status(statusCode).json({
+        accessToken,
+        user: user
+    })
+}
   private async emailVerification(body: CreateUserDto) {
     const code = this.mailerService.resetCode();
     await this.UnverifiedUserModel.deleteMany({ email: body.email });
@@ -43,6 +61,7 @@ export class UserService {
         code: code,
       });
     } catch (err) {
+      console.log(err);
       await verification.deleteOne();
       throw new HttpException('nodemailer error', 400);
     }
@@ -68,7 +87,7 @@ export class UserService {
     await verification.save();
     return { message: 'email verification code sent' };
   }
-  async verifyEmail(code: string, email: string) {
+  async verifyEmail(code: string, email: string, res: Response) {
     const hash = this.createHash(code);
     const verification = await this.UnverifiedUserModel.findOne({
       verificationToken: hash,
@@ -85,26 +104,27 @@ export class UserService {
       icon: verification.icon,
       role: verification.role,
       fcm: verification.fcm,
-      phonr: verification.phone,
+      phone: verification.phone,
     });
     await verification.deleteOne();
-    const accessToken = await this.authService.createAccessToken(
-      user._id.toString(),
-      user.role,
-      user.email,
-      user.name,
-    );
-    const refreshToken = await this.authService.createRefreshToken(
-      user._id.toString(),
-      user.role,
-    );
+    // const accessToken = await this.authService.createAccessToken(
+    //   user._id.toString(),
+    //   user.role,
+    //   user.email,
+    //   user.name,
+    // );
+    // const refreshToken = await this.authService.createRefreshToken(
+    //   user._id.toString(),
+    //   user.role,
+    // );
     user.password = undefined;
     user.passwordChangedAt = undefined;
     user.passwordResetCode = undefined;
     user.passwordResetCodeExpiresIn = undefined;
     user.isDeleted = undefined;
     user.fcm = undefined;
-    return { user, accessToken, refreshToken };
+    await this.createSendToken(user, 200, res);
+    // return { user, accessToken, refreshToken };
   }
   async getFcmToken(userId: string) {
     const user = await this.userModel.findById(userId);
@@ -150,25 +170,26 @@ export class UserService {
     if (!valid) {
       throw new BadRequestException('email or password is not correct');
     }
-    const accessToken = await this.authService.createAccessToken(
-      user._id.toString(),
-      user.role,
-      user.email,
-      user.name,
-    );
-    const refreshToken = await this.authService.createRefreshToken(
-      user._id.toString(),
-      user.role,
-    );
+    // const accessToken = await this.authService.createAccessToken(
+    //   user._id.toString(),
+    //   user.role,
+    //   user.email,
+    //   user.name,
+    // );
+    // const refreshToken = await this.authService.createRefreshToken(
+    //   user._id.toString(),
+    //   user.role,
+    // );
     user.password = undefined;
     user.passwordChangedAt = undefined;
     user.passwordResetCode = undefined;
     user.passwordResetCodeExpiresIn = undefined;
     user.isDeleted = undefined;
     user.fcm = undefined;
-    res.
-      status(200)
-      .json({ accessToken, user, refreshToken });
+    await this.createSendToken(user, 200, res);
+    // res.
+    //   status(200)
+    //   .json({ accessToken, user, refreshToken });
   }
   createHash(code: string) {
     return crypto.createHash('sha256').update(code).digest('hex');
@@ -263,5 +284,17 @@ export class UserService {
     user.isDeleted = undefined;
     user.fcm = undefined;
     return { user };
+  }
+  async logout(res:Response){
+    // remove cookies from browser.
+    console.log('logout')
+    res.cookie('jwt', 'loogedout',{
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true
+    });
+    res.status(200).json({
+        success: true,
+        msg: 'user logged out'
+    })
   }
 }
