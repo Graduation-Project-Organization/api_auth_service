@@ -31,6 +31,8 @@ export class User {
     trim: true,
   })
   fcm: string;
+  @Prop({})
+  plan: string;
 
   @Prop({
     type: Boolean,

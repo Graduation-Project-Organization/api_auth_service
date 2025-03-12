@@ -39,5 +39,10 @@ export class CreateUserDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  plan?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   phone?: string;
 }

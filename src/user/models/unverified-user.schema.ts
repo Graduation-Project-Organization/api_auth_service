@@ -20,6 +20,8 @@ export class UnverifiedUser {
 
   @Prop({})
   fcm: string;
+  @Prop({})
+  plan: string;
 
   @Prop({})
   phone: string;

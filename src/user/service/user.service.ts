@@ -105,6 +105,7 @@ export class UserService {
       role: verification.role,
       fcm: verification.fcm,
       phone: verification.phone,
+      plan: verification.plan
     });
     await verification.deleteOne();
     // const accessToken = await this.authService.createAccessToken(
