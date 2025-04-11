@@ -34,6 +34,7 @@ export class UserService {
     // await this.validateUniqueEmail(body.email);
     // await this.emailVerification(body);
     // return { message: 'email verification code sent' };
+    body.password = await bcrypt.hash(body.password, 10);
     const user = await this.userModel.create({
       password: body.password,
       email: body.email,
