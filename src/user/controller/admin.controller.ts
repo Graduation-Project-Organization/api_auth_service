@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthenticationGuard } from '../../common/guard/authentication.guard';
@@ -34,9 +35,10 @@ export class AdminController {
   // @UseInterceptors(FileInterceptor('icon'))
   createUser(
     @Body() body: CreateUserDto,
+    @Res() res: Response,
     // @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.userService.createUser(body);
+    return this.userService.createUser(body, res);
   }
 
   @Delete(':userId')

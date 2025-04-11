@@ -31,10 +31,11 @@ export class AuthController {
   // @UseInterceptors(FileInterceptor('icon'))
   createUser(
     @Body() body: CreateUserDto,
+    @Res() res: Response
     // @Res() res: Response,
     // @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.userService.createUser(body);
+    return this.userService.createUser(body, res);
   }
 
   @Post('forget-password')

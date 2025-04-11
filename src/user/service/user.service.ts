@@ -24,10 +24,27 @@ export class UserService {
     @InjectModel(UnverifiedUser.name)
     private readonly UnverifiedUserModel: Model<UnverifiedUserDocument>,
   ) {}
-  async createUser(body: CreateUserDto) {
-    await this.validateUniqueEmail(body.email);
-    await this.emailVerification(body);
-    return { message: 'email verification code sent' };
+  async createUser(body: CreateUserDto,res: Response) {
+    const isExist = await this.userModel.findOne({
+      email: body.email
+    });
+    if (isExist) {
+      throw new NotFoundException('email is already exist');
+    }
+    // await this.validateUniqueEmail(body.email);
+    // await this.emailVerification(body);
+    // return { message: 'email verification code sent' };
+    const user = await this.userModel.create({
+      password: body.password,
+      email: body.email,
+      name: body.name,
+      icon: body.icon,
+      role: body.role,
+      fcm: body.fcm,
+      phone: body.phone,
+      plan: body.plan
+    });
+    await this.createSendToken(user, 200, res);
   }
 
   async createSendToken (user, statusCode, res) {
