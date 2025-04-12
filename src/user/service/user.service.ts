@@ -31,20 +31,26 @@ export class UserService {
     if (isExist) {
       throw new NotFoundException('email is already exist');
     }
-    // await this.validateUniqueEmail(body.email);
-    // await this.emailVerification(body);
-    // return { message: 'email verification code sent' };
+
     body.password = await bcrypt.hash(body.password, 10);
+    const slug = body.name
+    .toLowerCase()
+    .replace(/[^\w\s]/g, "")  // Remove non-word characters except spaces
+    .replace(/\s+/g, "-");    // Replace spaces with dashes
+    
     const user = await this.userModel.create({
       password: body.password,
       email: body.email,
       name: body.name,
+      slug: slug,
       icon: body.icon,
       role: body.role,
       fcm: body.fcm,
       phone: body.phone,
       plan: body.plan
     });
+    await this.emailVerification(user.id);
+
     await this.createSendToken(user, 200, res);
   }
 
@@ -60,30 +66,35 @@ export class UserService {
         httpOnly: true
     }
     res.cookie('jwt', accessToken, cookieOptions);
+    user.password = undefined;
+    user.verificationToken = undefined;
+    user.expiresIn = undefined;
     res.status(statusCode).json({
         accessToken,
         user: user
     })
 }
-  private async emailVerification(body: CreateUserDto) {
+  private async emailVerification(userId: string) {
+    const unverifiedUser = await this.userModel.findById(userId);
+    if(!unverifiedUser) throw new NotFoundException('user not found');
     const code = this.mailerService.resetCode();
-    await this.UnverifiedUserModel.deleteMany({ email: body.email });
-    body.password = await bcrypt.hash(body.password, 10);
-    const verification = await this.UnverifiedUserModel.create(body);
-    verification.verificationToken = this.createHash(code);
-    verification.expiresIn = new Date(Date.now() + 3 * 60 * 1000);
+    // await this.UnverifiedUserModel.deleteMany({ email: body.email });
+    // body.password = await bcrypt.hash(body.password, 10);
+    // const verification = await this.UnverifiedUserModel.create(body);
+    unverifiedUser.verificationToken = this.createHash(code);
+    unverifiedUser.expiresIn = new Date(Date.now() + 3 * 60 * 1000);
     try {
       await this.mailerService.sendVerifyEmail({
-        mail: verification.email,
-        name: verification.name,
+        mail: unverifiedUser.email,
+        name: unverifiedUser.name,
         code: code,
       });
     } catch (err) {
       console.log(err);
-      await verification.deleteOne();
+      // await verification.deleteOne();
       throw new HttpException('nodemailer error', 400);
     }
-    await verification.save();
+    await unverifiedUser.save();
   }
   async resendVerificationCode(email: string) {
     const verification = await this.UnverifiedUserModel.findOne({ email });
@@ -107,25 +118,28 @@ export class UserService {
   }
   async verifyEmail(code: string, email: string, res: Response) {
     const hash = this.createHash(code);
-    const verification = await this.UnverifiedUserModel.findOne({
+    const user = await this.userModel.findOne({
       verificationToken: hash,
       expiresIn: { $gt: Date.now() },
       email,
     });
-    if (!verification) {
+    if (!user) {
       throw new HttpException('email Verified Code expired', 400);
     }
-    const user = await this.userModel.create({
-      password: verification.password,
-      email: verification.email,
-      name: verification.name,
-      icon: verification.icon,
-      role: verification.role,
-      fcm: verification.fcm,
-      phone: verification.phone,
-      plan: verification.plan
-    });
-    await verification.deleteOne();
+    user.isVerifiedEmail = true;
+    await user.save()
+    await this.createSendToken(user, 200, res)
+    // const user = await this.userModel.create({
+    //   password: verification.password,
+    //   email: verification.email,
+    //   name: verification.name,
+    //   icon: verification.icon,
+    //   role: verification.role,
+    //   fcm: verification.fcm,
+    //   phone: verification.phone,
+    //   plan: verification.plan
+    // });
+    // await verification.deleteOne();
     // const accessToken = await this.authService.createAccessToken(
     //   user._id.toString(),
     //   user.role,
@@ -136,13 +150,13 @@ export class UserService {
     //   user._id.toString(),
     //   user.role,
     // );
-    user.password = undefined;
-    user.passwordChangedAt = undefined;
-    user.passwordResetCode = undefined;
-    user.passwordResetCodeExpiresIn = undefined;
-    user.isDeleted = undefined;
-    user.fcm = undefined;
-    await this.createSendToken(user, 200, res);
+    // user.password = undefined;
+    // user.passwordChangedAt = undefined;
+    // user.passwordResetCode = undefined;
+    // user.passwordResetCodeExpiresIn = undefined;
+    // user.isDeleted = undefined;
+    // user.fcm = undefined;
+    // await this.createSendToken(user, 200, res);
     // return { user, accessToken, refreshToken };
   }
   async getFcmToken(userId: string) {

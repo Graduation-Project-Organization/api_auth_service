@@ -8,6 +8,9 @@ import { All_Role } from 'src/common/enum';
 export class User {
   @Prop({})
   name: string
+  
+  @Prop({})
+  slug: string
 
   @Prop({ type: Boolean, default: false })
   isVerifiedEmail: boolean;
@@ -48,6 +51,12 @@ export class User {
 
   @Prop({ type: String })
   passwordResetCode: string;
+
+  @Prop({})
+  verificationToken: string;
+
+  @Prop({})
+  expiresIn: Date;
 
   @Prop({ type: Date })
   passwordResetCodeExpiresIn: Date;
