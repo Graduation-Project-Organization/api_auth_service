@@ -20,11 +20,12 @@ async function bootstrap() {
       exceptionFactory: (errors) => new BadRequestException(errors),
     }),
   );
-    app.enableCors({
-      origin: '*', // Replace with your frontend URL
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-      credentials: true,
+  app.enableCors({
+    origin: ['http://localhost:3000'], // Your frontend
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    credentials: true,
   });
+  
   // app.use(bodyParser.json({ limit: '50mb' }));
   // app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
   app.use(cookieParser());
