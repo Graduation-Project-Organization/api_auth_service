@@ -20,7 +20,7 @@ export class AuthService {
   async createAccessToken(userId: string, role: string, email: string, username: string) {
     const accessToken = await this.jwt.signAsync(
       { userId, role, email, username },
-      { secret: this.config.get('access_secret'), expiresIn: '5h' },
+      { secret: this.config.get('access_secret') },
     );
     return accessToken;
   }
